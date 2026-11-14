@@ -76,15 +76,29 @@ else
   echo "首次下载，已固定源码哈希到 $HASH_FILE"
 fi
 
-# 校验 tag 指向的 commit（供应链锚点）
-TAG_OBJ="$(curl -sSL --http1.1 "https://api.github.com/repos/$REPO/git/ref/tags/$TAG" \
-  | python3 -c 'import sys,json;print(json.load(sys.stdin)["object"]["sha"])')"
-TAG_COMMIT="$(curl -sSL --http1.1 "https://api.github.com/repos/$REPO/git/tags/$TAG_OBJ" \
-  | python3 -c 'import sys,json;print(json.load(sys.stdin)["object"]["sha"])')"
-if [ "$TAG_COMMIT" != "$COMMIT" ]; then
-  echo "警告：tag $TAG 指向 commit $TAG_COMMIT，与锚点 $COMMIT 不一致" >&2
+# 校验 tag 指向的 commit（best-effort 供应链 transparency：网络/限流失败不阻断构建。
+# 硬锚点是上面固定的 tarball SHA256，已足以保证源码一致）。
+TAG_COMMIT=""
+for _attempt in 1 2 3; do
+  TAG_OBJ="$(curl -sSL --http1.1 --retry 2 --max-time 60 \
+    "https://api.github.com/repos/$REPO/git/ref/tags/$TAG" 2>/dev/null \
+    | python3 -c 'import sys,json;print(json.load(sys.stdin).get("object",{}).get("sha",""))' 2>/dev/null)" || true
+  if [ -n "$TAG_OBJ" ]; then
+    TAG_COMMIT="$(curl -sSL --http1.1 --retry 2 --max-time 60 \
+      "https://api.github.com/repos/$REPO/git/tags/$TAG_OBJ" 2>/dev/null \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("object",{}).get("sha",""))' 2>/dev/null)" || true
+  fi
+  [ -n "$TAG_COMMIT" ] && break
+  sleep 2
+done
+if [ -n "$TAG_COMMIT" ]; then
+  if [ "$TAG_COMMIT" != "$COMMIT" ]; then
+    echo "警告：tag $TAG 指向 commit $TAG_COMMIT，与锚点 $COMMIT 不一致" >&2
+  fi
+  echo "源码 commit: $TAG_COMMIT"
+else
+  echo "提示：在线校验 tag commit 失败（网络/限流），已跳过；tarball SHA256 仍为硬锚点" >&2
 fi
-echo "源码 commit: $TAG_COMMIT"
 
 # --- 解压 ---
 SRC="$CACHE/src-$TAG"
