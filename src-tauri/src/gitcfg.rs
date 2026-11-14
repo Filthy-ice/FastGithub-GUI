@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::process::Command;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
@@ -11,11 +10,11 @@ pub const PROXY_VALUE: &str = "http://127.0.0.1:38457";
 pub struct GitBackup { pub proxy: Option<String>, pub ssl_ca_info: Option<String> }
 
 pub fn git_available() -> bool {
-    Command::new("git").arg("--version").output().map(|o| o.status.success()).unwrap_or(false)
+    crate::proc::command("git").arg("--version").output().map(|o| o.status.success()).unwrap_or(false)
 }
 
 fn get_config(key: &str) -> Option<String> {
-    let out = Command::new("git").args(["config", "--global", "--get", key]).output().ok()?;
+    let out = crate::proc::command("git").args(["config", "--global", "--get", key]).output().ok()?;
     if out.status.success() { Some(String::from_utf8_lossy(&out.stdout).trim().to_string()) } else { None }
 }
 
@@ -33,7 +32,7 @@ pub fn config_args(key: &str, value: Option<&str>) -> Vec<String> {
 }
 
 fn run_args(args: &[String]) -> Result<()> {
-    Command::new("git").args(args).status().context("运行 git 失败")?;
+    crate::proc::command("git").args(args).status().context("运行 git 失败")?;
     Ok(())
 }
 

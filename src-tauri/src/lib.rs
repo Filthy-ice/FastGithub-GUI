@@ -1,5 +1,6 @@
 pub mod state;
 pub mod paths;
+pub mod proc;
 pub mod protocol;
 pub mod gitcfg;
 pub mod kernel;

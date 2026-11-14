@@ -22,7 +22,7 @@ fn parent_alive(pid: u32) -> bool {
     { unsafe { libc::kill(pid as i32, 0) == 0 } }
     #[cfg(windows)]
     {
-        let out = std::process::Command::new("tasklist")
+        let out = crate::proc::command("tasklist")
             .args(["/FI", &format!("PID eq {pid}"), "/NH"]).output();
         match out {
             Ok(o) => String::from_utf8_lossy(&o.stdout).contains(&pid.to_string()),

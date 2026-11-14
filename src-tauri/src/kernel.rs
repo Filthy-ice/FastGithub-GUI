@@ -1,7 +1,7 @@
 use anyhow::{Context, Result, bail};
 use std::net::TcpStream;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::{Duration, Instant};
 
 pub fn spawn(kernel_dir: &Path) -> Result<u32> {
@@ -9,7 +9,7 @@ pub fn spawn(kernel_dir: &Path) -> Result<u32> {
     let log = kernel_dir.parent().unwrap().join("logs").join("fastgithub.log");
     if let Some(p) = log.parent() { std::fs::create_dir_all(p)?; }
     let logf = std::fs::File::create(&log).context("创建日志文件失败")?;
-    let child = Command::new(&bin)
+    let child = crate::proc::command(&bin)
         .current_dir(kernel_dir)
         .stdout(Stdio::from(logf.try_clone()?))
         .stderr(Stdio::from(logf))
@@ -35,7 +35,7 @@ pub fn kill(pid: u32) {
     }
     #[cfg(windows)]
     {
-        let _ = Command::new("taskkill").args(["/F", "/T", "/PID", &pid.to_string()]).output();
+        let _ = crate::proc::command("taskkill").args(["/F", "/T", "/PID", &pid.to_string()]).output();
     }
 }
 

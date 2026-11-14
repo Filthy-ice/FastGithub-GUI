@@ -52,7 +52,7 @@ fn dialog(app: &tauri::AppHandle, msg: &str) {
     {
         let body = msg.replace('\'', "''");
         let script = format!("(New-Object -ComObject WScript.Shell).Popup('{body}',0,'FastGithub GUI',0) | Out-Null");
-        let _ = std::process::Command::new("powershell").args(["-NoProfile", "-Command", &script]).output();
+        let _ = fastgithub_gui_lib::proc::command("powershell").args(["-NoProfile", "-Command", &script]).output();
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
@@ -178,7 +178,7 @@ fn main() -> anyhow::Result<()> {
             let reinstall = MenuItem::with_id(app, "reinstall", "重新安装组件", true, None::<&str>)?;
             let uninstall = MenuItem::with_id(app, "uninstall", "卸载…", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-            let version = MenuItem::with_id(app, "version", "FastGithub GUI 0.1.0", false, None::<&str>)?;
+            let version = MenuItem::with_id(app, "version", format!("FastGithub GUI {}", env!("CARGO_PKG_VERSION")), false, None::<&str>)?;
             let sep = PredefinedMenuItem::separator(app)?;
             let menu = Menu::with_items(app, &[&status, &toggle, &sep, &reinstall, &uninstall, &quit, &version])?;
             app.manage(TrayHandles { status: status.clone(), toggle: toggle.clone() });

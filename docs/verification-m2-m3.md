@@ -2,7 +2,7 @@
 
 > 安装包由 CI 出包（推 `v*` 标签触发）。本清单供你在自己的 Windows / Linux 机器上实测。
 > macOS 已在本地真机验证（见 `verification-m1.md`）。每项通过打勾，失败把现象/日志反馈给我迭代。
-> 日志位置：Windows `%APPDATA%/FastGithub GUI/logs/`；Linux `~/.local/share/FastGithub GUI/logs/`。
+> 日志位置：Windows `%APPDATA%/FastGithubGUI/logs/`；Linux `~/.local/share/FastGithubGUI/logs/`。
 
 ## Windows（零管理员）
 
