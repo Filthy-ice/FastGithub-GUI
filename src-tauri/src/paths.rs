@@ -48,10 +48,12 @@ mod tests {
     use super::*;
     #[test]
     fn layout() {
-        let p = paths_from_base(PathBuf::from("/tmp/base"));
-        assert_eq!(p.kernel_dir, PathBuf::from("/tmp/base/FastGithubGUI/kernel"));
-        assert_eq!(p.cacert, PathBuf::from("/tmp/base/FastGithubGUI/kernel/cacert/fastgithub.cer"));
-        assert_eq!(p.logs_dir, PathBuf::from("/tmp/base/FastGithubGUI/logs"));
-        assert_eq!(p.git_backup_file, PathBuf::from("/tmp/base/FastGithubGUI/git-backup.json"));
+        let base = PathBuf::from("/tmp/base");
+        let p = paths_from_base(base.clone());
+        let app = base.join("FastGithubGUI");
+        assert_eq!(p.kernel_dir, app.join("kernel"));
+        assert_eq!(p.cacert, app.join("kernel").join("cacert").join("fastgithub.cer"));
+        assert_eq!(p.logs_dir, app.join("logs"));
+        assert_eq!(p.git_backup_file, app.join("git-backup.json"));
     }
 }
