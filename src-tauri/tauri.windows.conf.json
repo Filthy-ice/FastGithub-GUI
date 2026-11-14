@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "targets": ["nsis"],
+    "resources": ["resources/kernel"],
+    "windows": { "nsis": { "installMode": "currentUser" } }
+  }
+}

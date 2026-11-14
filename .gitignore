@@ -1,0 +1,8 @@
+/target
+/node_modules
+/.cache
+/dist
+src-tauri/target
+src-tauri/gen/schemas
+src-tauri/resources/kernel
+src-tauri/resources/helper

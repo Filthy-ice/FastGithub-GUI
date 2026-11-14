@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "targets": ["dmg"],
+    "resources": ["resources/kernel", "resources/helper"],
+    "macOS": { "minimumSystemVersion": "10.15" }
+  }
+}
