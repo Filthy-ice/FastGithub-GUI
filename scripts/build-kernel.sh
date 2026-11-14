@@ -119,6 +119,7 @@ rm -f "$SRC/Directory.Build.props.bak" "$SRC/FastGithub/FastGithub.csproj.bak"
 sed -i.bak 's|level="requireAdministrator"|level="asInvoker"|g' "$SRC/FastGithub/app.manifest"
 rm -f "$SRC/FastGithub/app.manifest.bak"
 
+# Python 输出必须 ASCII：Windows 控制台非 UTF-8，中文 print 会 UnicodeEncodeError 中断构建。
 python3 - "$SRC/FastGithub/Startup.cs" <<'PY'
 import re, sys
 p = sys.argv[1]
@@ -129,11 +130,11 @@ s = re.sub(
 s = re.sub(
     r'\n[ \t]*if\s*\(OperatingSystem\.IsWindows\(\)\)\s*\{\s*services\.AddPacketIntercept\(\);\s*\}',
     '', s, flags=re.DOTALL)
-assert 'ListenHttpsReverseProxy' not in s, 'Startup.cs 监听分支补丁未生效'
-assert 'AddPacketIntercept' not in s, 'Startup.cs 抓包补丁未生效'
-assert 'kestrel.ListenHttpProxy();' in s, '缺少 ListenHttpProxy'
+assert 'ListenHttpsReverseProxy' not in s, 'Startup.cs listen-branch patch failed'
+assert 'AddPacketIntercept' not in s, 'Startup.cs packet-intercept patch failed'
+assert 'kestrel.ListenHttpProxy();' in s, 'missing ListenHttpProxy'
 open(p, 'w', encoding='utf-8').write(s)
-print('Startup.cs 已补丁：Windows 改用 ListenHttpProxy，移除 AddPacketIntercept')
+print('Startup.cs patched: Windows uses ListenHttpProxy; AddPacketIntercept removed')
 PY
 
 # --- 编译（自包含单文件；InformationalVersion 必须含 '+' 以兼容 ProductionVersion.Parse）---
