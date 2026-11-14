@@ -111,6 +111,31 @@ sed -i.bak 's|<TargetFramework>net7.0</TargetFramework>|<TargetFramework>net8.0<
 sed -i.bak 's|Version="7.0.0-rc\*"|Version="8.0.0"|g' "$SRC/FastGithub/FastGithub.csproj"
 rm -f "$SRC/Directory.Build.props.bak" "$SRC/FastGithub/FastGithub.csproj.bak"
 
+# --- Windows 免管理员补丁：改用与 macOS/Linux 一致的 HTTP 代理模式 ---
+# 上游 Windows 默认 WinDivert 抓包(需管理员)+反向代理端口，exe 清单 requireAdministrator，
+# 普通用户 GUI 拉起报 os error 740，且不监听本 GUI 期望的 38457。改为：清单 asInvoker、
+# Windows 也 ListenHttpProxy(38457)、去掉 AddPacketIntercept。机器级证书安装失败上游已
+# try/catch 仅告警，信任由 GUI 装到用户 Root 兜底（与 macOS 一致）。
+sed -i.bak 's|level="requireAdministrator"|level="asInvoker"|g' "$SRC/FastGithub/app.manifest"
+rm -f "$SRC/FastGithub/app.manifest.bak"
+
+python3 - "$SRC/FastGithub/Startup.cs" <<'PY'
+import re, sys
+p = sys.argv[1]
+s = open(p, encoding='utf-8-sig').read()
+s = re.sub(
+    r'if\s*\(OperatingSystem\.IsWindows\(\)\)\s*\{\s*kestrel\.ListenHttpsReverseProxy\(\);.*?else\s*\{\s*kestrel\.ListenHttpProxy\(\);\s*\}',
+    'kestrel.ListenHttpProxy();', s, flags=re.DOTALL)
+s = re.sub(
+    r'\n[ \t]*if\s*\(OperatingSystem\.IsWindows\(\)\)\s*\{\s*services\.AddPacketIntercept\(\);\s*\}',
+    '', s, flags=re.DOTALL)
+assert 'ListenHttpsReverseProxy' not in s, 'Startup.cs 监听分支补丁未生效'
+assert 'AddPacketIntercept' not in s, 'Startup.cs 抓包补丁未生效'
+assert 'kestrel.ListenHttpProxy();' in s, '缺少 ListenHttpProxy'
+open(p, 'w', encoding='utf-8').write(s)
+print('Startup.cs 已补丁：Windows 改用 ListenHttpProxy，移除 AddPacketIntercept')
+PY
+
 # --- 编译（自包含单文件；InformationalVersion 必须含 '+' 以兼容 ProductionVersion.Parse）---
 rm -rf "$DEST"
 mkdir -p "$DEST"
