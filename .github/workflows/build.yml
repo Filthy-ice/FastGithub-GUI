@@ -63,8 +63,8 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          cargo build --release --bin fastgithub-gui-helper --manifest-path src-tauri/Cargo.toml
           mkdir -p src-tauri/resources/helper
+          cargo build --release --bin fastgithub-gui-helper --manifest-path src-tauri/Cargo.toml
           cp src-tauri/target/release/fastgithub-gui-helper src-tauri/resources/helper/
 
       - name: Unit tests

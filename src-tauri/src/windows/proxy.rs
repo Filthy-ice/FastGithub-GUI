@@ -53,12 +53,12 @@ pub fn restore_proxy(b: &ProxyBackup) -> Result<()> {
 }
 
 fn notify() {
-    use windows_sys::Win32::Networking::WinHttp::{
+    use windows_sys::Win32::Networking::WinInet::{
         InternetSetOptionW, INTERNET_OPTION_REFRESH, INTERNET_OPTION_SETTINGS_CHANGED,
     };
     unsafe {
-        InternetSetOptionW(std::ptr::null_mut(), INTERNET_OPTION_SETTINGS_CHANGED, std::ptr::null(), 0);
-        InternetSetOptionW(std::ptr::null_mut(), INTERNET_OPTION_REFRESH, std::ptr::null(), 0);
+        InternetSetOptionW(std::ptr::null(), INTERNET_OPTION_SETTINGS_CHANGED, std::ptr::null(), 0);
+        InternetSetOptionW(std::ptr::null(), INTERNET_OPTION_REFRESH, std::ptr::null(), 0);
     }
 }
 
